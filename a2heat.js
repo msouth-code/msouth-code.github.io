@@ -2,6 +2,7 @@
 let table;
 let cancellationValues = [];
 let maxCancelled;
+let btn;
 let airportData = {};  
 //you cannot view a p5 sketch (with csv data) without starting a server
 
@@ -22,9 +23,7 @@ function setup() {
 
   maxCancelled = Math.max(...rows2012.map(row =>                                                     
     row.getNum('Statistics.Flights.Cancelled')                                                               
-  ));  
-
-                                                                                      
+  ));                                                                       
                                                                                                              
   for (let row of rows2012) {                                                                                
     let code = row.getString("Airport.Code");                                                                
@@ -40,7 +39,7 @@ function draw() {
   background(220);
   fill(0);
 
-  text("Cancelled Flights in 2012", 350, 30);
+  text("Cancelled Flights in 2012", 370, 30);
 
   let x = 100;
   let y = 100
@@ -96,23 +95,11 @@ function draw() {
     x = 100  
     y += 50;                                                  
   }   
-    //place years
-    
-    //pull numbers
-    // cancellationValues[i] = filteredRows[i].getNum("Statistics.Flights.Cancelled");
-    //draw graph
-    // square(x + 30, y - 25, 40)
-    // rect(i * 35 + 120, 1700 - cancellationValues[i], 20, cancellationValues[i]);
-    // circle(i * 35 + 133, 1700 - cancellationValues[i], 20);
-    // y += 50
-  
-
-//   text("Airport Code", 600, 1750);
 
   fill(0)
   push();
   // offset the drawing context by 50 on x and 100 on y
-  translate(50, 1100);
+  translate(50, 800);
   rotate(270);
   text("Airport Code", 0, 0);
   pop();
