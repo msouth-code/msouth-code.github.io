@@ -1,5 +1,7 @@
 body {
   background-color: rgb(244, 220, 247);
+  cursor: url("assets/cheezit.png"), auto;
+  /* <a target="_blank" href="https://icons8.com/icon/9L9i0wP3MWGL/cursor">Cursor</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a> */
 }
 h1 {
     color:darkblue
