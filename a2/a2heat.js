@@ -9,7 +9,7 @@ let airportData = {};
 // in terminal, go to p5 folder (folder one level above empty_example)
 // type python3 -m http.server // could also use live-server
 function preload() {
-  table = loadTable('data/airlines.csv', 'csv', 'header');
+  table = loadTable('../data/airlines.csv', 'csv', 'header');
 }
 
 function setup() {
