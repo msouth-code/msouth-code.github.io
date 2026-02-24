@@ -70,6 +70,23 @@
                 .attr("width", x.bandwidth())
                 .attr("height", function (d) { return height - y(d["Statistics.Flights.Cancelled"]); })
                 .attr("fill", "#69b3a2")
+                .on("mouseover", (evt, d) => {
+                    const [mx, my] = d3.pointer(evt);
+                    tooltip
+                        .attr("x", mx)
+                        .attr("y", my)
+                        .text(`# of Flights Cancelled: ${d["Statistics.Flights.Cancelled"]}`);
+                })
+                .on("mouseout", () => {
+                    // clear the tooltip
+                    tooltip.text("");
+                });
+
+            const tooltip = svg
+                .append("text")
+                .attr("class", "tooltip")
+                .attr("fill", "black")
+                .style("pointer-events", "none");
 
 
             svg.append("text")

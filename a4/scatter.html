@@ -71,6 +71,24 @@
                 .attr("cy", function (d) { return y(d["Statistics.# of Delays.Late Aircraft"]); })
                 .attr("r", 3)
                 .attr("fill", "#69b3a2")
+                .on("mouseover", (evt, d) => {
+                    const [mx, my] = d3.pointer(evt);
+                    tooltip
+                        .attr("x", mx)
+                        .attr("y", my)
+                        .text(`# of Flights Delayed: ${d["Statistics.Flights.Delayed"]}`)
+                        .text(`# of Late Aircraft Delays: ${d["Statistics.# of Delays.Late Aircraft"]}`);
+                })
+                .on("mouseout", () => {
+                    // clear the tooltip
+                    tooltip.text("");
+                });
+
+            const tooltip = svg
+                .append("text")
+                .attr("class", "tooltip")
+                .attr("fill", "black")
+                .style("pointer-events", "none");
 
 
             svg.append("text")

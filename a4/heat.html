@@ -18,8 +18,8 @@
         // Your beautiful D3 code will go here
         var dataset;  //Declare global variable, initially empty (undefined)
 
-        var margin = { top: 50, right: 30, bottom: 70, left: 60 },
-            width = 860 - margin.left - margin.right,
+        var margin = { top: 50, right: 60, bottom: 70, left: 60 },
+            width = 980 - margin.left - margin.right,
             height = 790 - margin.top - margin.bottom;
 
         // append the svg object to the body of the page
@@ -38,14 +38,14 @@
             drawChart();
         });
 
-    
+
 
         // Add Y axis
         function drawChart() {
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(dataset.map(function(d) { return d["Time.Month Name"]; }))
-                // .padding(0.5);
+                .domain(dataset.map(function (d) { return d["Time.Month Name"]; }))
+            // .padding(0.5);
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
@@ -55,15 +55,17 @@
 
             var y = d3.scaleBand()
                 .range([0, height])
-                .domain(dataset.map(function(d) { return d["Airport.Code"]; }))
-                // .padding(0.5);
+                .domain(dataset.map(function (d) { return d["Airport.Code"]; }))
+            // .padding(0.5);
             svg.append("g")
                 .call(d3.axisLeft(y));
 
             var colorRange = d3.scaleLinear()
-            .domain([0, d3.max(dataset, function (d) { return +d["Statistics.Flights.Cancelled"] })]) 
-            .range(["white", "#7F00FF"])
+                .domain([0, d3.max(dataset, function (d) { return +d["Statistics.Flights.Cancelled"] })])
+                .range(["white", "#7F00FF"])
+
             
+
             //heats
             svg.selectAll("heats")
                 .data(dataset)
@@ -73,27 +75,44 @@
                 .attr("y", function (d) { return y(d["Airport.Code"]); })
                 .attr("width", x.bandwidth())
                 .attr("height", y.bandwidth())
-                .attr("fill", function(d) { return colorRange(d["Statistics.Flights.Cancelled"]) })
+                .attr("fill", function (d) { return colorRange(d["Statistics.Flights.Cancelled"]) })
+                .on("mouseover", (evt, d) => {
+                    const [mx, my] = d3.pointer(evt);
+                    tooltip
+                        .attr("x", mx)
+                        .attr("y", my)
+                        .text(`# of Flights Cancelled: ${d["Statistics.Flights.Cancelled"]}`);
+                })
+                .on("mouseout", () => {
+                    // clear the tooltip
+                    tooltip.text("");
+                });
+
+            const tooltip = svg
+                .append("text")
+                .attr("class", "tooltip")
+                .attr("fill", "black")
+                .style("pointer-events", "none");
 
 
             svg.append("text")
-            .attr("text-anchor", "middle")
-            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 70) + ")")
-            .text("Heat Map of Flights Cancelled in 2012");
+                .attr("text-anchor", "middle")
+                .attr("transform", "translate(" + (width / 2) + " ," + (margin.top - 70) + ")")
+                .text("Heat Map of Flights Cancelled in 2012");
 
             //x label
             svg.append("text")
-            .attr("text-anchor", "middle")
-            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top) + ")")
-            .text("Month");
+                .attr("text-anchor", "middle")
+                .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top) + ")")
+                .text("Month");
 
             //y label
             svg.append("text")
-            .attr("text-anchor", "middle")
-            .attr("transform", "rotate(-90)")
-            .attr("y", -margin.left + 20)
-            .attr("x", -height / 2)
-            .text("Airport Code");
+                .attr("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 20)
+                .attr("x", -height / 2)
+                .text("Airport Code");
 
 
         }
