@@ -1,0 +1,137 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A5 - Bubble Chart</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+        var dataset;  //Declare global variable, initially empty (undefined)
+
+        var margin = { top: 50, right: 30, bottom: 70, left: 60 },
+            width = 760 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.csv("../data/coffee.csv").then(function (data) {
+            dataset = data;
+            drawChart();
+        });
+
+    
+
+        // Add Y axis
+        function drawChart() {
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var x = d3.scaleLinear()
+                .range([0, width - 80])
+                .domain([xMin, xMax])
+                // .padding(0.5);
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            console.log(yMax)
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0); 
+
+            // circles
+            svg.selectAll("bubbles")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("cx", function (d) { return x(d["Data.Scores.Aroma"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Flavor"]); })
+                .attr("r", function(d) { return Math.pow(2, d["Data.Scores.Acidity"]) / 45})
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    const [mx, my] = d3.pointer(evt);
+                    tooltip
+                        .style("opacity", 1)  
+                        .html(`Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")                                                                                       
+                        .style("top", (evt.pageY - 10) + "px"); 
+                })
+                .on("mouseout", () => {
+                    // clear the tooltip
+                     tooltip.style("opacity", 0);  
+                });
+
+            
+
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 70) + ")")
+            .text("Professional Scores of Arabica and Robusta Beans from Varying Countries");
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top) + ")")
+            .text("Flavor Score");
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 20)
+            .attr("x", -height / 2)
+            .text("Aroma Score");
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>

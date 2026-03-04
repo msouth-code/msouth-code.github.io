@@ -1,0 +1,574 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A5 - Scatterplot Matrix</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+        var dataset;  //Declare global variable, initially empty (undefined)
+
+        var margin = { top: 50, right: 30, bottom: 70, left: 60 },
+            width = 760 - margin.left - margin.right,
+            height = 900 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        // Shared tooltip for all cells
+        const tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("background", "white")
+            .style("padding", "5px")
+            .style("border", "1px solid #ccc")
+            .style("pointer-events", "none")
+            .style("opacity", 0);
+
+        // Column offsets
+        var col1Offset = width * (1/3);
+        var col2Offset = width * (2/3);
+        var cellWidth = (width - 80) * (1/3);
+
+        d3.csv("../data/coffee.csv").then(function (data) {
+            dataset = data;
+            // Row 0
+            drawChart1();
+            drawChart2();
+            drawChart3();
+            // Row 1
+            drawChart4();
+            drawChart5();
+            drawChart6();
+            // Row 2
+            drawChart7();
+            drawChart8();
+            drawChart9();
+        });
+
+    
+
+        // CELL 1: FLAVOR V FLAVOR (Row 0, Col 0)
+        function drawChart1() {
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var x = d3.scaleLinear()
+                .range([0, cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * 1/4 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * (1/4), 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.selectAll(".cell1")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell1")
+                .attr("cx", function (d) { return x(d["Data.Scores.Flavor"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Flavor"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", (-margin.left + 20))
+            .attr("x", -(height*(1/8)))
+            .text("Flavor Score");
+        }
+
+        // CELL 4: FLAVOR V ACIDITY (Row 1, Col 0)
+        function drawChart4() {
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var x = d3.scaleLinear()
+                .range([0, cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * .65 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * .65, height * .4]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.selectAll(".cell4")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell4")
+                .attr("cx", function (d) { return x(d["Data.Scores.Flavor"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Acidity"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", (-margin.left + 20))
+            .attr("x", -(height*(1/2)))
+            .text("Acidity Score");
+        }
+
+        // CELL 5: ACIDITY V ACIDITY (Row 1, Col 1)
+        function drawChart5() {
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var x = d3.scaleLinear()
+                .range([col1Offset, col1Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * .65 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * .65, height * .4]);
+
+            svg.selectAll(".cell5")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell5")
+                .attr("cx", function (d) { return x(d["Data.Scores.Acidity"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Acidity"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+        }
+
+        function drawChart7() {
+            //FLAVOR V AROMA; CELL 7 (Row 2, Col 0)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var x = d3.scaleLinear()
+                .range([0, cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height, height * (3/4)]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.selectAll(".cell7")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell7")
+                .attr("cx", function (d) { return x(d["Data.Scores.Flavor"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Aroma"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 70) + ")")
+            .text("Scatterplot Matrix Professional Scores of Arabica and Robusta Beans from Varying Countries");
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (cellWidth / 2) + " ," + (height + 50) + ")")
+            .text("Flavor Score");
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", (-margin.left + 20))
+            .attr("x", -(height*(7/8)))
+            .text("Aroma Score");
+        }
+
+        function drawChart2() {
+            //ACIDITY V FLAVOR; CELL 2 (Row 0, Col 1)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var x = d3.scaleLinear()
+                .range([col1Offset, col1Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * 1/4 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * (1/4), 0]);
+
+            svg.selectAll(".cell2")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell2")
+                .attr("cx", function (d) { return x(d["Data.Scores.Acidity"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Flavor"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+        }
+
+        function drawChart3() {
+            //AROMA V FLAVOR; CELL 3 (Row 0, Col 2)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var x = d3.scaleLinear()
+                .range([col2Offset, col2Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * 1/4 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Flavor"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * (1/4), 0]);
+
+            svg.selectAll(".cell3")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell3")
+                .attr("cx", function (d) { return x(d["Data.Scores.Aroma"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Flavor"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Flavor Score: ${d["Data.Scores.Flavor"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+        }
+
+        function drawChart6() {
+            //AROMA V ACIDITY; CELL 6 (Row 1, Col 2)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var x = d3.scaleLinear()
+                .range([col2Offset, col2Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height * .65 + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height * .65, height * .4]);
+
+            svg.selectAll(".cell6")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell6")
+                .attr("cx", function (d) { return x(d["Data.Scores.Aroma"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Acidity"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+        }
+
+        function drawChart8() {
+            //ACIDITY V AROMA; CELL 8 (Row 2, Col 1)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Acidity"] })
+            var x = d3.scaleLinear()
+                .range([col1Offset, col1Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height, height * (3/4)]);
+
+            svg.selectAll(".cell8")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell8")
+                .attr("cx", function (d) { return x(d["Data.Scores.Acidity"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Aroma"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Acidity Score: ${d["Data.Scores.Acidity"]} <br/>
+                        Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (col1Offset + cellWidth / 2) + " ," + (height + 50) + ")")
+            .text("Acidity Score");
+        }
+
+        function drawChart9() {
+            //AROMA V AROMA; CELL 9 (Row 2, Col 2)
+            var xMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var x = d3.scaleLinear()
+                .range([col2Offset, col2Offset + cellWidth])
+                .domain([xMin, xMax])
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Scores.Aroma"] })
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([height, height * (3/4)]);
+
+            svg.selectAll(".cell9")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("class", "cell9")
+                .attr("cx", function (d) { return x(d["Data.Scores.Aroma"]); })
+                .attr("cy", function (d) { return y(d["Data.Scores.Aroma"]); })
+                .attr("r", 2)
+                .attr("fill", function(d) {
+                    if(d["Data.Type.Species"] == "Arabica") {
+                        return "#eb3434";
+                    } else {
+                        return "#096b26";
+                    }
+                })
+                .style("opacity", 0.5)
+                .on("mouseover", (evt, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(`Aroma Score: ${d["Data.Scores.Aroma"]} <br/>
+                        Species: ${d["Data.Type.Species"]}`)
+                        .style("left", (evt.pageX + 10) + "px")
+                        .style("top", (evt.pageY - 10) + "px");
+                })
+                .on("mouseout", () => {
+                     tooltip.style("opacity", 0);
+                });
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (col2Offset + cellWidth / 2) + " ," + (height + 50) + ")")
+            .text("Aroma Score");
+        }
+
+
+
+    </script>
+</body>
+
+</html>

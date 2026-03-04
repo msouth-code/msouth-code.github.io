@@ -1,0 +1,161 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A5 - Line Chart</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+        var rowConverter = function(d) {
+            return {
+                //Make a new Date object for each year + month
+                date: new Date(+d["TimeYear"], (+d["Time.Month"] - 1)),
+                //Convert from string to float
+                flightsCancelled: +d["Statistics.Flights.Cancelled"],
+
+                airlineCode: d["Airport.Code"]
+        };
+}
+
+        var dataset;  //Declare global variable, initially empty (undefined)
+
+        var margin = { top: 50, right: 30, bottom: 70, left: 60 },
+            width = 760 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.csv("../data/airlines.csv", rowConverter).then(function (data) {
+            dataset = data.filter(function (d) {
+                return d["airlineCode"] === "LAX"; // Use + to convert string to number
+            });
+            console.table(dataset, ["date", "flightsCancelled", "airlineCode"])
+            drawChart();
+        });
+
+    
+
+        // Add axes
+        function drawChart() {
+            xScale = d3.scaleTime()
+               .domain([
+                    d3.min(dataset, function(d) { return d.date; }),
+                    d3.max(dataset, function(d) { return d.date; })
+                ])
+               .range([0, width]);
+                // .padding(0.5);
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(xScale))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+        
+            yScale = d3.scaleLinear()
+               .domain([0, d3.max(dataset, function(d) { return d.flightsCancelled; })])
+               .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(yScale));
+
+            const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0); 
+
+            var line = d3.line()
+                 .x(function(d) { return xScale(d["date"]); })
+                 .y(function(d) { return yScale(d["flightsCancelled"]); });
+            
+            
+            // var svg = d3.select("body")
+            //     .append("svg")
+            //     .attr("width", width)
+            //     .attr("height", height);
+
+                //Create line
+            svg.append("path")
+                .datum(dataset)
+                .attr("class", "line")
+                .attr("d", line)
+                .attr("fill", "none")                                                                                           
+                .attr("stroke", "steelblue")                                                                                    
+                .attr("stroke-width", 1.5)
+                // .data(dataset)
+                // .enter()
+            
+            svg.selectAll("circle")                                                                                             
+            .data(dataset)                                                                                                  
+            .enter()                                                                                                        
+            .append("circle")                                                                                               
+            .attr("cx", function(d) { return xScale(d.date); })                                                             
+            .attr("cy", function(d) { return yScale(d.flightsCancelled); })                                                 
+            .attr("r", 5)                                                                                                   
+            .attr("fill", "steelblue")                                                                                      
+            .style("opacity", 0)  // invisible until hover                                                                  
+            .on("mouseover", (evt, d) => {                                                                                  
+                d3.select(evt.currentTarget).style("opacity", 1);  // show circle                                           
+                tooltip                                                                                                     
+                    .style("opacity", 1)                                                                                    
+                    .html(`Date: ${d.date.toLocaleDateString()}<br/>                                                        
+                            Flights Cancelled: ${d.flightsCancelled}`)                                                       
+                    .style("left", (evt.pageX + 10) + "px")                                                                 
+                    .style("top", (evt.pageY - 10) + "px");                                                                 
+            })                                                                                                              
+            .on("mouseout", (evt) => {                                                                                      
+                d3.select(evt.currentTarget).style("opacity", 0);  // hide circle                                           
+                tooltip.style("opacity", 0);                                                                                
+            });                 
+            
+
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 70) + ")")
+            .text("Flights Cancelled at LAX from 2012 to 2016");
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top) + ")")
+            .text("Date");
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 20)
+            .attr("x", -height / 2)
+            .text("Number of Flights Cancelled");
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
