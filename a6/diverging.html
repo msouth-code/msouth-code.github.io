@@ -1,0 +1,161 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A6 - Bar Chart</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+        var dataset;  //Declare global variable, initially empty (undefined)
+
+        var margin = { top: 50, right: 30, bottom: 70, left: 120 },
+            width = 760 - margin.left - margin.right,
+            height = 1000 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.csv("../data/state_crime.csv").then(function (data) {
+            data = data.filter(function(d) {                                                                                                  
+                return d["State"] !== "United States";                                                                                        
+            }); 
+
+            dataset = d3.rollups(data,                                                                                                    
+                v => {
+                    const val1992 = v.find(d => +d["Year"] === 1992);                                            
+                    const val1991 = v.find(d => +d["Year"] === 1991);                                            
+                    return (val1992 ? +val1992["Data.Totals.Violent.Robbery"] : 0) -                             
+                        (val1991 ? +val1991["Data.Totals.Violent.Robbery"] : 0);                               
+                },                                                                  
+                d => d["State"]                                                                                                        
+            ).map(([key, value]) => ({                                                                                                        
+                "State": key,                                                                                                          
+                "RobberyDifference": value                                                                                         
+            })); 
+            drawChart();
+        });
+
+    
+        // Add Y axis
+        function drawChart() {
+            var robberyMax = d3.max(dataset, function (d) { return +d["RobberyDifference"] })
+            var robberyMin = d3.min(dataset, function (d) { return +d["RobberyDifference"] })
+
+            var x = d3.scaleLinear()
+                .range([0, width])
+                .domain([robberyMin, robberyMax])
+                // .padding(0.5);
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var y = d3.scaleBand()
+                .range([0, height])
+                .domain(dataset.map(function(d) { return d["State"]; }))
+                .padding(0.1);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+        
+            
+            var colorScale = d3.scaleDiverging()
+            .domain([robberyMin, 0, robberyMax])
+            .interpolator(d3.interpolateRdYlGn);
+            
+            
+            
+            const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0); 
+
+            // Bars
+            svg.selectAll("mybar")
+                .data(dataset)
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(Math.min(0, d["RobberyDifference"])); })
+                .attr("y", function (d) { return y(d["State"]); })
+                .attr("width", function (d) { return Math.abs(x(d["RobberyDifference"]) - x(0)); })
+                .attr("height", y.bandwidth())
+                .attr("fill", function (d) { return colorScale(d["RobberyDifference"]); })
+                .on("mouseover", (evt, d) => {
+                    d3.select(evt.currentTarget).style("opacity", 1);  // show circle                                           
+                    tooltip                                                                                                     
+                        .style("opacity", 1)                                                                                    
+                        .html(`State: ${d["State"]}<br>Total Robbery Difference: ${d["RobberyDifference"]}`)                                                       
+                        .style("left", (evt.pageX + 10) + "px")                                                                 
+                        .style("top", (evt.pageY - 10) + "px"); 
+                })
+                .on("mouseout", (evt) => {                                                                                      
+                tooltip.style("opacity", 0);                                                                                
+            });    
+
+            
+
+
+            svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 50},150)`);
+
+            
+
+            var colorLegend = d3.legendColor()
+                .title("color legend")
+                .titleWidth(100)
+                .cells(5)
+                .scale(colorScale);
+
+
+            svg.select(".legend")
+            .call(colorLegend);
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 60) + ")")
+            .text("Difference in Violent Robberies from 1991 to 1992 by State");
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top) + ")")
+            .text("Difference in Violent Robberies from 1991 to 1992");
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 20)
+            .attr("x", -height / 2)
+            .text("State");
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
