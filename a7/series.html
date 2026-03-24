@@ -1,0 +1,195 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A7 - Multi-Line Chart</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+        var dataset;  //Declare global variable, initially empty (undefined)
+
+        var margin = { top: 50, right: 30, bottom: 90, left: 60 },
+            width = 760 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.csv("../data/state_crime.csv").then(function (data) {
+            dataset = data.filter(function(d) {                                                                                                  
+                return d["State"] == "California" 
+                || d["State"] == "New York"
+                || d["State"] == "Texas"
+                || d["State"] == "Pennsylvania";                                                                                        
+            }); 
+            drawChart();
+        });
+
+    
+
+        // Add Y axis
+        function drawChart() {
+            var xMin = d3.min(dataset, function (d) { return +d["Year"] })
+            var xMax = d3.max(dataset, function (d) { return +d["Year"] })
+            var x = d3.scaleLinear()
+                .range([0, width])
+                .domain([xMin, xMax])
+                // .padding(0.5);
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            var yMin = d3.min(dataset, function (d) { return +d["Data.Rates.Violent.Murder"] })
+            var yMax = d3.max(dataset, function (d) { return +d["Data.Rates.Violent.Murder"] })
+            console.log(yMax)
+            var y = d3.scaleLinear()
+                .domain([0, yMax])
+                .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+
+            // COLOR BREWER COLORS
+            var colorScale = d3.scaleOrdinal()
+            .domain(["California", "New York", "Texas", "Pennsylvania"])
+            .range(["#8da0cb", "#e78ac3", "#a6d854", "#fc8d62"]);
+
+            const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0); 
+
+            var line = d3.line()
+                 .x(function(d) { return x(d["Year"]); })
+                 .y(function(d) { return y(d["Data.Rates.Violent.Murder"]); });
+
+            var groupedData = d3.group(dataset, d => d["State"]);
+            
+            svg.selectAll(".line")
+                .data(groupedData)
+                .enter()
+                .append("path")
+                .attr("fill", "none")
+                .attr("stroke", function(d){ return colorScale(d[0]) })
+                .attr("stroke-width", 1.5)
+                .attr("d", function(d){
+                    return d3.line()
+                        .x(function(d) { return x(+d["Year"]); })
+                        .y(function(d) { return y(+d["Data.Rates.Violent.Murder"]); })
+                        (d[1])
+                });
+
+            var area = d3.area()
+            .curve(d3.curveMonotoneX)
+            .x(function(d) { return x(d["Year"]); })
+            .y0(y(0))
+            .y1(function(d) { return y(+d["Data.Rates.Violent.Murder"]); });
+                        
+
+            svg.selectAll("area")
+            .data(groupedData)
+            .enter()
+            .append("path")
+            .attr("d", function(d){
+                    return area(d[1])
+                })
+            .attr("fill", function(d) {
+                return colorScale(d[0])
+            })
+            .attr("stroke", "black")
+            .style("opacity", 0.5);
+      
+            // // circles
+            svg.selectAll("circles")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("cx", function (d) { return x(+d["Year"]); })
+                .attr("cy", function (d) { return y(+d["Data.Rates.Violent.Murder"]); })
+                .attr("r", 3)
+                .attr("fill", function (d) { return colorScale(d["State"]); })
+                .style("opacity", 0) 
+                .on("mouseover", (evt, d) => {                                                                                  
+                d3.select(evt.currentTarget).style("opacity", 1);  // show circle                                           
+                tooltip                                                                                                     
+                    .style("opacity", 1)                                                                                    
+                        .html(`State: ${d["State"]}
+                        <br>Murder Rate: ${d["Data.Rates.Violent.Murder"]}
+                        <br>Year:  ${d["Year"]}`)                                                       
+                        .style("left", (evt.pageX + 10) + "px")                                                                 
+                        .style("top", (evt.pageY - 10) + "px");                                                                 
+                })                                                                                                              
+                .on("mouseout", (evt) => {                                                                                      
+                    d3.select(evt.currentTarget).style("opacity", 0);  // hide circle                                           
+                    tooltip.style("opacity", 0);                                                                                
+        });
+
+            svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 50},10)`);
+
+
+            var colorLegend = d3.legendColor()
+                .title("color legend")
+                .titleWidth(100)
+                .scale(colorScale);
+
+
+            svg.select(".legend")
+            .call(colorLegend);
+
+
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (margin.top - 70) + ")")
+            .text("Population vs. Murder Rate from 1960 to 2019");
+
+            //x label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
+            .text("Year");
+
+            //y label
+            svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 20)
+            .attr("x", -height / 2)
+            .text("Violent Murder Rate");
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
