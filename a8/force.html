@@ -1,0 +1,153 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A8 - Force-Directed Node-Link Diagram</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+    
+
+    var margin = { top: 50, right: 30, bottom: 90, left: 60 },
+            width = 2528 - margin.left - margin.right,
+            height = 2400 - margin.top - margin.bottom;
+
+    // Specify the color scale.
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.csv("../data/fb_pages_artist.csv").then(function (data) {
+        const allNodes = [...new Set(data.flatMap(d => [d.source, d.target]))];
+        const nodes = allNodes.map(id => ({ id: id, group: 1 }));
+        const nodeIndex = new Map(nodes.map((n, i) => [n.id, i]));  
+        const links = data.map(d => ({                                                                              
+          source: nodeIndex.get(d.source),                                                                        
+          target: nodeIndex.get(d.target), 
+          weight: 1                                                                         
+        })); 
+        drawChart(nodes, links);
+    });
+
+    function drawChart(nodes, links) {
+        // The force simulation mutates links and nodes, so create a copy
+        // so that re-evaluating this cell produces the same result.
+        // const links = dataset.links.map(d => ({...d}));
+        // const nodes = dataset.nodes.map(d => ({...d}));
+
+        // Create a simulation with several forces.
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links))
+            .force("charge", d3.forceManyBody().strength(-10))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .on("tick", ticked);
+
+        const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0); 
+
+        // Add a line for each link, and a circle for each node.
+        const link = svg.append("g")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .selectAll()
+            .data(links)
+            .join("line")
+            .attr("stroke-width", d => Math.sqrt(d.value));
+
+        const node = svg.append("g")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 1.5)
+            .selectAll()
+            .data(nodes)
+            .join("circle")
+            .attr("r", 5)
+            .attr("fill", d => color(d.group))
+            .on("mouseover", (evt, d) => {                                                                                  
+                d3.select(evt.currentTarget).style("opacity", 1);  // show circle                                           
+                tooltip                                                                                                     
+                    .style("opacity", 1)                                                                                    
+                        .html(`Node ID: ${d.id}`)                                                       
+                        .style("left", (evt.pageX + 10) + "px")                                                                 
+                        .style("top", (evt.pageY - 10) + "px");                                                                 
+            })                                                                                                              
+            .on("mouseout", (evt) => {                                                                                     
+                tooltip.style("opacity", 0);   
+            });
+
+        node.append("title")
+            .text(d => d.id);
+
+        // Add a drag behavior.
+        node.call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        // Set the position attributes of links and nodes each time the simulation ticks.
+        function ticked() {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        // Reheat the simulation when drag starts, and fix the subject position.
+        function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        // Update the subject (dragged node) position during drag.
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        // Restore the target alpha so the simulation cools after dragging ends.
+        // Unfix the subject position now that it’s no longer being dragged.
+        function dragended(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        return svg.node();                  
+    }
+
+
+    </script>
+</body>
+
+</html>

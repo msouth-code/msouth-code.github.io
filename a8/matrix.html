@@ -1,0 +1,111 @@
+<!-- PLEASE SEE README.md FOR REFERENCES -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A8 - Adjacency Matrix</title>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+</head>
+
+<body>
+    <a href="../index.html">Back</a>
+    <div></div>
+    <div id="my_dataviz"></div>
+    <script type="text/javascript">
+        // Your beautiful D3 code will go here
+    
+
+    var margin = { top: 100, right: 30, bottom: 30, left: 100 },                                                    
+      width = 800 - margin.left - margin.right,                                                                   
+      height = 800 - margin.top - margin.bottom;                                                                  
+                                                                                                                  
+    var svg = d3.select("#my_dataviz")                                                                              
+      .append("svg")                                                                                              
+      .attr("width", width + margin.left + margin.right)                                                          
+      .attr("height", height + margin.top + margin.bottom)                                                        
+      .append("g")                                                                                                
+      .attr("transform", `translate(${margin.left},${margin.top})`);                                              
+                                                                                                                  
+    d3.csv("../data/fb_pages_artist.csv").then(function (data) {                                                    
+                                                                                               
+      const allNodes = [...new Set(data.flatMap(d => [d.source, d.target]))].slice(0, 50);  
+      const nodeSet = new Set(allNodes);  
+      const filteredLinks = data.filter(d => nodeSet.has(d.source) && nodeSet.has(d.target));                                 
+                                                                                                                
+      const x = d3.scaleBand()                                                                                    
+          .domain(allNodes)                                                                                       
+          .range([0, width])                                                                                      
+          .padding(0.01);                                                                                         
+                                                                                                                  
+      const y = d3.scaleBand()                                                                                    
+          .domain(allNodes)                                                                                       
+          .range([0, height])                                                                                     
+          .padding(0.01);                                                                                         
+                                                                                                       
+      //  matrix data                                                                                       
+      const matrixData = [];                                                                                      
+      allNodes.forEach(source => {                                                                                
+          allNodes.forEach(target => {                                                                            
+              matrixData.push({                                                                                   
+                source: source,                                                                                 
+                target: target,                                                                                 
+                linked: filteredLinks.some(d =>                                                                                 
+                    (d.source === source && d.target === target) ||                                                             
+                    (d.source === target && d.target === source)                                                                
+                )                  
+              });                                                                                                 
+          });                                                                                                     
+      });     
+      
+      const tooltip = d3.select("body")                                                                                                     
+            .append("div")                                                                                                                    
+            .attr("class", "tooltip")                                                                                                         
+            .style("position", "absolute")                                                                                                    
+            .style("background", "white")                                                                                                     
+            .style("padding", "5px")                                                                                                          
+            .style("border", "1px solid #ccc")                                                                                                
+            .style("pointer-events", "none")                                                                                                  
+            .style("opacity", 0)
+                                                                                                    
+      svg.selectAll("rect")                                                                                       
+          .data(matrixData)                                                                                       
+          .join("rect")                                                                                           
+          .attr("x", d => x(d.source))                                                                            
+          .attr("y", d => y(d.target))                                                                            
+          .attr("width", x.bandwidth())                                                                           
+          .attr("height", y.bandwidth())                                                                          
+          .attr("fill", d => d.linked ? "#69b3a2" : "#eee")
+          .on("mouseover", (evt, d) => {                                                                                  
+                d3.select(evt.currentTarget).style("opacity", 1);                                          
+                tooltip                                                                                                     
+                    .style("opacity", 1)                                                                                    
+                        .html(`Source Node: ${d.source}
+                        <br> Target Node: ${d.target}`)                                                       
+                        .style("left", (evt.pageX + 10) + "px")                                                                 
+                        .style("top", (evt.pageY - 10) + "px");                                                                 
+            })                                                                                                              
+            .on("mouseout", (evt) => {                                                                                   
+                tooltip.style("opacity", 0);   
+            });                                                     
+                                                                                                
+      svg.append("g")                                                                                             
+          .call(d3.axisTop(x))                                                                                    
+          .selectAll("text")                                                                                      
+          .attr("transform", "rotate(-45)")                                                                       
+          .style("text-anchor", "start");                                                                         
+                                                                                                                  
+      svg.append("g")                                                                                             
+          .call(d3.axisLeft(y));                                                                                  
+    });
+
+
+    </script>
+</body>
+
+</html>
