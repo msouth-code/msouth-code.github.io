@@ -8,3 +8,4 @@ A4:
 A8:
 - https://observablehq.com/@d3/force-directed-graph/2 
 - https://observablehq.com/@fabiodesousa/adjacency-matrix 
+- https://observablehq.com/@d3/bilevel-edge-bundling 
