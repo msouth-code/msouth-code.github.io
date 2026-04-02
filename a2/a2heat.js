@@ -15,7 +15,7 @@ function preload() {
 function setup() {
   angleMode(DEGREES);
 
-    rows2012 = table.findRows('2012', 'Time.Year');
+    rows2012 = table.findRows('2012', 'TimeYear');
 
   createCanvas(2000, 2000);
   numberOfRows = rows2012.length;

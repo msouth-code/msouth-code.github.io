@@ -13,7 +13,7 @@ function preload() {
 function setup() {
   angleMode(DEGREES);
 
-    filteredRows = table.findRows('2012', 'Time.Year').filter(row =>
+    filteredRows = table.findRows('2012', 'TimeYear').filter(row =>
     row.getString('Time.Month Name') === 'October'
     );
 
